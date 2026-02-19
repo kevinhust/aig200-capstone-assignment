@@ -7,11 +7,11 @@
 ---
 
 ## 1. Executive Summary
-SleepInsight AI is a production-ready REST API designed to interpret wearable device data. It bridges the gap between raw biometric exports (like Apple Health XML) and actionable health insights. The system uses a high-accuracy Random Forest model to predict sleep scores and provides rule-based clinical guidance, including life-science-specific medical advice triggers.
+SleepInsight AI is a production-ready REST API specifically optimized for Apple Health data. It bridges the gap between raw Apple Health XML exports and actionable health insights. The system uses a high-accuracy Random Forest model to predict sleep scores and provides rule-based clinical guidance, including life-science-specific medical advice triggers.
 
 ## 2. Problem Definition & Dataset
 ### The Problem
-Wearable devices provide vast amounts of data, but users often lack the context to understand "what makes a good night's sleep." This project provides a standardized scoring and analysis mechanism.
+Apple Health provides vast amounts of data via XML exports, but users often lack the context to understand "what makes a good night's sleep." This project provides a standardized scoring and analysis mechanism specifically for Apple Health users.
 
 ### Dataset Integration
 To ensure a robust and generalized model, we integrated two major datasets:
@@ -33,7 +33,7 @@ The system is built for scalability and security using a modern containerized st
 
 ```mermaid
 graph TD
-    User([User / Wearable Data]) --> |POST JSON + API Key| API[FastAPI Application]
+    User([User / Apple Health XML]) --> |POST JSON + API Key| API[FastAPI Application]
     subgraph "Docker Container"
         API --> |Inference| Model[Random Forest Pipeline]
         Model -.-> |Loads| Artifacts[sleep_model_pipeline.pkl]
@@ -57,4 +57,4 @@ We validated the system using a **1.3 GB Apple Health Export** from the user.
 - **Localization**: Transforming the project from Chinese to English to meet technical requirements. *Solution: Full refactor of API logic strings and documentation.*
 
 ## 7. Conclusion
-SleepInsight AI demonstrates a successful end-to-end ML lifecycle: from multi-source data engineering and high-performance modelling to containerized deployment and real-world data validation.
+SleepInsight AI demonstrates a successful end-to-end ML lifecycle: from Apple Health data engineering and high-performance modelling to containerized deployment and real-world validation.

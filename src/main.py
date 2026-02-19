@@ -138,7 +138,7 @@ async def analyze_sleep(data: SleepInput, api_key: str = Depends(verify_api_key)
         detailed_analysis=analysis,
         summary_opinion=summary,
         recommendations=recs,
-        disclaimer="This analysis is based on wearable data and is for informational purposes only, not for medical diagnosis."
+        disclaimer="This analysis is based on Apple Health (Apple Watch) data and is for informational purposes only, not for medical diagnosis."
     )
 
 @app.get("/health")

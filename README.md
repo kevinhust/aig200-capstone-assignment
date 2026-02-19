@@ -1,6 +1,6 @@
 # SleepInsight AI
 
-SleepInsight AI is a machine learning-powered REST API that analyzes sleep data from wearable devices (like Apple Watch) to provide sleep scores, quality assessments, and personalized health recommendations.
+SleepInsight AI is a machine learning-powered REST API that specifically analyzes sleep data from **Apple Health (Apple Watch)** to provide sleep scores, quality assessments, and personalized health recommendations.
 
 ## Project Overview
 
