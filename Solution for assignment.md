@@ -9,8 +9,8 @@
 ## 1. 项目概述与目标
 
 ### 核心价值
-- 帮助用户解读 Apple Watch / Fitbit / Garmin 等设备导出的睡眠数据，提供直观、可行动的洞见。
-- 焦点放在**部署和运营化**：预训练模型 + FastAPI + Docker + 云部署（GCP Cloud Run 或 AWS Elastic Beanstalk）。
+- 帮助用户解读 Apple Watch 导出的睡眠数据，提供直观、可行动的洞见。
+- 焦点放在针对 Apple Health 的部署和运营化：预训练模型 + FastAPI + Docker + 云部署（GCP Cloud Run 或 AWS Elastic Beanstalk）。
 - 强调 HCLS（Health Care & Life Sciences）主题：透明、可解释、安全（含免责声明与求医引导）。
 
 ### 项目范围（符合作业限制）
