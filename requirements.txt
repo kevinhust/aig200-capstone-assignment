@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+pydantic
+pandas
+numpy
+scikit-learn
+joblib
+xgboost
+python-multipart
+# For testing
+requests

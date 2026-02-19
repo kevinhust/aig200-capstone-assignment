@@ -1,0 +1,26 @@
+# Personal Data (CRITICAL)
+export.zip
+data/personal_data/
+*.zip
+*.xml
+*.csv
+# If you decide to save personal results later:
+data/personal_metrics.json
+data/personal_analysis_result.json
+
+# Models & Preprocessors (Large files)
+models/*.pkl
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project generated
+data/processed_training_data.csv
