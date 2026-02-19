@@ -15,7 +15,7 @@ def test_health():
 
 def test_analyze_sleep():
     payload = {
-        "age": 45,
+        "age": 23,
         "gender": "Female",
         "sleep_duration_hr": 6.2,
         "heart_rate": 72,
