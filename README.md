@@ -26,6 +26,17 @@ SleepInsight AI is a machine learning-powered REST API that specifically analyze
 3. **API Key**:
    Default development key is `dev-key-12345`. Pass it in the `X-API-KEY` header.
 
+### Quick Test with Example Data
+
+We've provided a sample JSON file to test the output immediately:
+
+```bash
+# Test using the provided Python script (Ensure API is running first)
+python3 tests/test_with_json.py
+```
+
+The script reads from `tests/example_payload.json`, which contains a realistic Apple Health sleep profile.
+
 ### Docker
 
 1. **Build the image**:
