@@ -9,7 +9,8 @@ data/personal_metrics.json
 data/personal_analysis_result.json
 
 # Models & Preprocessors (Large files)
-models/*.pkl
+# models/*.pkl
+!models/sleep_model_pipeline.pkl
 
 # Python
 __pycache__/
