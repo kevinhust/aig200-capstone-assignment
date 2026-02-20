@@ -181,8 +181,35 @@ async def upload_health(file: UploadFile = File(...), api_key: str = Depends(ver
             if not xml_found:
                 raise HTTPException(status_code=400, detail="No export.xml found in the uploaded ZIP file")
 
-        # Parse the health data
-        metrics = parse_health_data(final_path)
+        # Handle CSV files
+        if suffix == ".csv":
+            try:
+                df_upload = pd.read_csv(final_path)
+                if df_upload.empty:
+                    raise HTTPException(status_code=400, detail="Uploaded CSV is empty")
+                
+                # Take the first row if multiple exist
+                row = df_upload.iloc[0].to_dict()
+                
+                # Map CSV columns to SleepInput fields
+                metrics = {
+                    "age": int(row.get("age", 30)),
+                    "gender": str(row.get("gender", "Other")),
+                    "sleep_duration_hr": float(row.get("sleep_duration_hr", 7.0)),
+                    "heart_rate": float(row.get("heart_rate")) if pd.notnull(row.get("heart_rate")) else None,
+                    "stress_level": float(row.get("stress_level", 3.0)),
+                    "rem_percent": float(row.get("rem_percent")) if pd.notnull(row.get("rem_percent")) else None,
+                    "deep_percent": float(row.get("deep_percent")) if pd.notnull(row.get("deep_percent")) else None,
+                    "awakenings": float(row.get("awakenings", 0)),
+                    "breathing_disturbances_elevated": bool(row.get("breathing_disturbances_elevated", False)),
+                    "apnea_notification_received": bool(row.get("apnea_notification_received", False))
+                }
+            except Exception as e:
+                raise HTTPException(status_code=400, detail=f"Error parsing CSV data: {str(e)}")
+        else:
+            # Parse the health data
+            metrics = parse_health_data(final_path)
+            
         if not metrics:
             raise HTTPException(status_code=400, detail="Could not parse health data from file")
         
