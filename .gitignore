@@ -4,6 +4,8 @@ data/personal_data/
 *.zip
 *.xml
 *.csv
+!tests/demo_sleep_data.csv
+archive/
 # If you decide to save personal results later:
 data/personal_metrics.json
 data/personal_analysis_result.json
