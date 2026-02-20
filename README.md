@@ -9,6 +9,8 @@ SleepInsight AI is a machine learning-powered REST API that specifically analyze
 - **Framework**: FastAPI
 - **Model**: RandomForestRegressor (trained on Kaggle Sleep Health & Efficiency datasets)
 - **Deployment**: Live on **GCP Cloud Run**
+- **CI/CD**: Fully automated via **GitHub Actions**
+- **Analysis Engine**: Advanced rule-based interpretation for clinical health metrics
 - **Live URL**: [https://sleepinsight-ai-agdeofj7eq-uc.a.run.app](https://sleepinsight-ai-agdeofj7eq-uc.a.run.app)
 
 ## Setup & Installation
@@ -85,10 +87,12 @@ Directly upload health exports for automatic parsing and analysis.
 For presentation purposes, a sample CSV is provided at: `tests/demo_sleep_data.csv`. This file can be uploaded to the `/upload_health` endpoint to demo various sleep quality scenarios.
 
 ## Project Structure
-- `src/main.py`: FastAPI application with endpoint logic.
+- `src/main.py`: FastAPI application with endpoint logic and rule-based engine.
 - `src/parse_apple_health.py`: XML parsing logic for Apple Watch data.
-- `models/`: Trained model artifact.
+- `models/`: Trained model artifact (`RandomForestRegressor`).
+- `Final_Project_Report.md`: Full assignment report with architecture and results.
 - `archive/`: Project development requirements and process documents.
+- `dockerfile`: Container configuration for GCP Cloud Run deployment.
 
 ## Disclaimer
 This analysis is based on wearable device data and general health references. It is for informational purposes only and is not a medical diagnosis. Please consult a qualified health professional.
