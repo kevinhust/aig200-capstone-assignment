@@ -1,10 +1,13 @@
-from fastapi import FastAPI, Header, HTTPException, Depends
+from fastapi import FastAPI, Header, HTTPException, Depends, UploadFile, File
 from pydantic import BaseModel
 from typing import Optional, List
 import joblib
 import pandas as pd
 import numpy as np
 import os
+import shutil
+import tempfile
+from src.parse_apple_health import parse_health_data
 
 app = FastAPI(title="SleepInsight AI API")
 
@@ -140,6 +143,98 @@ async def analyze_sleep(data: SleepInput, api_key: str = Depends(verify_api_key)
         recommendations=recs,
         disclaimer="This analysis is based on Apple Health (Apple Watch) data and is for informational purposes only, not for medical diagnosis."
     )
+
+@app.post("/upload_health", response_model=SleepAnalysisResponse)
+async def upload_health(file: UploadFile = File(...), api_key: str = Depends(verify_api_key)):
+    if model is None:
+        raise HTTPException(status_code=500, detail="Model not loaded")
+
+    import zipfile
+    
+    # Create a temporary file to store the upload
+    suffix = os.path.splitext(file.filename)[1].lower()
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        shutil.copyfileobj(file.file, tmp)
+        file_path = tmp.name
+
+    try:
+        final_path = file_path
+        tmp_dir = None
+        
+        # If it's a zip, extract it
+        if suffix == ".zip":
+            tmp_dir = tempfile.mkdtemp()
+            with zipfile.ZipFile(file_path, 'r') as zip_ref:
+                zip_ref.extractall(tmp_dir)
+            
+            # Find the export.xml (usually in apple_health_export/export.xml)
+            # We look for any .xml file recursively
+            xml_found = False
+            for root, dirs, files in os.walk(tmp_dir):
+                for f in files:
+                    if f.lower() == "export.xml":
+                        final_path = os.path.join(root, f)
+                        xml_found = True
+                        break
+                if xml_found: break
+            
+            if not xml_found:
+                raise HTTPException(status_code=400, detail="No export.xml found in the uploaded ZIP file")
+
+        # Parse the health data
+        metrics = parse_health_data(final_path)
+        if not metrics:
+            raise HTTPException(status_code=400, detail="Could not parse health data from file")
+        
+        # Convert parsed metrics to SleepInput model
+        sleep_data = SleepInput(**metrics)
+        
+        # Reuse analyze_sleep logic by calling the function directly or duplicating
+        # Here we duplicate for simplicity/clarity in this chunk
+        input_df = pd.DataFrame([{
+            'age': sleep_data.age,
+            'gender': sleep_data.gender,
+            'sleep_duration_hr': sleep_data.sleep_duration_hr,
+            'heart_rate': sleep_data.heart_rate,
+            'stress_level': sleep_data.stress_level,
+            'rem_percent': sleep_data.rem_percent,
+            'deep_percent': sleep_data.deep_percent,
+            'awakenings': sleep_data.awakenings
+        }])
+        
+        score = model.predict(input_df)[0]
+        score = max(0, min(100, score))
+        tier = get_quality_tier(score)
+        analysis = generate_detailed_analysis(sleep_data, score)
+        
+        recs = ["Maintain a consistent sleep schedule", "Reduce blue light exposure 1 hour before bed"]
+        if sleep_data.sleep_duration_hr < 7:
+            recs.append("Try going to bed 30 minutes earlier to increase total duration")
+        
+        summary = f"Your sleep score is {score:.1f}, categorized as {tier}."
+        if sleep_data.breathing_disturbances_elevated or sleep_data.apnea_notification_received:
+            summary += " Note: Abnormal breathing disturbance signals detected; consulting a medical professional is recommended."
+            recs.append("Strongly consider consulting a sleep specialist.")
+            
+        return SleepAnalysisResponse(
+            sleep_score=score,
+            quality_tier=tier,
+            key_insights={
+                "duration": sleep_data.sleep_duration_hr,
+                "deep": sleep_data.deep_percent,
+                "rem": sleep_data.rem_percent
+            },
+            detailed_analysis=analysis,
+            summary_opinion=summary,
+            recommendations=recs,
+            disclaimer="This analysis is based on uploaded Apple Health data."
+        )
+
+    finally:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        if tmp_dir and os.path.exists(tmp_dir):
+            shutil.rmtree(tmp_dir)
 
 @app.get("/health")
 async def health_check():
