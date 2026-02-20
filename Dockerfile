@@ -14,11 +14,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY src/ ./src/
 COPY models/ ./models/
 
-# Expose the port the app runs on
-EXPOSE 8000
+# Expose the port the app runs on (Cloud Run defaults to 8080)
+EXPOSE 8080
 
-# Define environment variable
+# Define environment variables
 ENV SLEEPINSIGHT_API_KEY=prod-key-98765
+ENV PYTHONPATH=/app
 
 # Run main.py when the container launches
-CMD ["sh", "-c", "uvicorn src.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["sh", "-c", "uvicorn src.main:app --host 0.0.0.0 --port ${PORT:-8080}"]

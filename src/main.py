@@ -13,10 +13,17 @@ app = FastAPI(title="SleepInsight AI API")
 
 # Load model pipeline
 MODEL_PATH = "models/sleep_model_pipeline.pkl"
-if os.path.exists(MODEL_PATH):
-    model = joblib.load(MODEL_PATH)
-else:
-    model = None
+model = None
+try:
+    if os.path.exists(MODEL_PATH):
+        model = joblib.load(MODEL_PATH)
+        print(f"Model loaded successfully from {MODEL_PATH}")
+    else:
+        print(f"WARNING: Model file not found at {MODEL_PATH}")
+except Exception as e:
+    print(f"ERROR: Failed to load model: {str(e)}")
+    # We don't raise an exception here to let the app start and listen on the port,
+    # which avoids a Cloud Run 'container failed to start' error.
 
 # Simple API Key Authentication
 API_KEY = os.getenv("SLEEPINSIGHT_API_KEY", "dev-key-12345")
@@ -346,4 +353,6 @@ async def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # Use the PORT environment variable if available (default for Cloud Run)
+    port = int(os.environ.get("PORT", 8080))
+    uvicorn.run(app, host="0.0.0.0", port=port)

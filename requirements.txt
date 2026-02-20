@@ -3,8 +3,8 @@ uvicorn
 pydantic
 pandas
 numpy
-scikit-learn
-joblib
+scikit-learn==1.7.2
+joblib==1.5.2
 xgboost
 python-multipart
 # For testing
