@@ -65,7 +65,13 @@ def generate_detailed_analysis(data: SleepInput, score: float) -> List[MetricAna
     
     # 1. Sleep Duration
     dur = data.sleep_duration_hr
-    interp = "Ideal sleep duration." if 7 <= dur <= 9 else "Duration is short; consider increasing sleep." if dur < 7 else "Duration is longer than average."
+    if dur >= 7 and dur <= 9:
+        interp = "Ideal sleep duration for cognitive function and physical health."
+    elif dur < 7:
+        interp = f"Duration ({dur}h) is below the recommended 7-9 hours. This can lead to sleep debt."
+    else:
+        interp = "Oversleeping detected. Occasionally normal, but chronic oversleeping may be linked to underlying issues."
+    
     analysis.append(MetricAnalysis(
         metric="Sleep Duration",
         user_value=f"{dur} hours",
@@ -73,24 +79,79 @@ def generate_detailed_analysis(data: SleepInput, score: float) -> List[MetricAna
         interpretation=interp
     ))
     
-    # 2. Efficiency / Score-based
-    analysis.append(MetricAnalysis(
-        metric="Overall Score",
-        user_value=f"{score:.1f}",
-        normal_range=">70 (Good)",
-        interpretation=f"Current quality is {get_quality_tier(score)}."
-    ))
-    
-    # 3. Deep Sleep (if provided)
+    # 2. Deep Sleep
     if data.deep_percent is not None:
         val = data.deep_percent
-        interp = "Deep sleep percentage is ideal for recovery." if val >= 18 else "Deep sleep percentage is slightly low, which may affect physical recovery."
+        if val >= 18:
+            interp = "Excellent deep sleep percentage. This is crucial for physical recovery and growth hormone release."
+        elif val >= 13:
+            interp = "Deep sleep is within the normal range for physical restoration."
+        else:
+            interp = "Deep sleep is low. You may feel physically unrefreshed or have muscle soreness."
+        
         analysis.append(MetricAnalysis(
-            metric="Deep Sleep Percentage",
+            metric="Deep Sleep",
             user_value=f"{val}%",
             normal_range="13–23%",
             interpretation=interp
         ))
+
+    # 3. REM Sleep
+    if data.rem_percent is not None:
+        val = data.rem_percent
+        if val >= 20:
+            interp = "Healthy REM sleep. Essential for memory consolidation and emotional processing."
+        else:
+            interp = "REM sleep is slightly below average. This might affect your mood or mental clarity."
+        
+        analysis.append(MetricAnalysis(
+            metric="REM Sleep",
+            user_value=f"{val}%",
+            normal_range="20–25%",
+            interpretation=interp
+        ))
+
+    # 4. Heart Rate (Resting/Avg during sleep)
+    if data.heart_rate is not None:
+        hr = data.heart_rate
+        if hr < 60:
+            interp = "Heart rate is low (Athletic range). Generally a sign of good cardiovascular fitness."
+        elif hr <= 80:
+            interp = "Heart rate is in the healthy resting range."
+        else:
+            interp = "Elevated sleeping heart rate. Could be due to stress, late meals, or lack of recovery."
+        
+        analysis.append(MetricAnalysis(
+            metric="Sleeping Heart Rate",
+            user_value=f"{hr} bpm",
+            normal_range="60–100 bpm",
+            interpretation=interp
+        ))
+
+    # 5. Stress Level
+    if data.stress_level is not None:
+        sl = data.stress_level
+        if sl <= 3:
+            interp = "Low stress levels detected. Your nervous system is well-regulated."
+        elif sl <= 6:
+            interp = "Moderate stress. Consider relaxation techniques before bed."
+        else:
+            interp = "High physiological stress. This significantly impacts sleep quality and recovery."
+        
+        analysis.append(MetricAnalysis(
+            metric="Stress Level",
+            user_value=f"{sl}/10",
+            normal_range="< 4.0",
+            interpretation=interp
+        ))
+
+    # 6. Overall Performance
+    analysis.append(MetricAnalysis(
+        metric="Overall Performance",
+        user_value=f"Score: {score:.1f}",
+        normal_range="70–100",
+        interpretation=f"Based on your metrics, your sleep quality is {get_quality_tier(score)}."
+    ))
         
     return analysis
 
@@ -100,7 +161,6 @@ async def analyze_sleep(data: SleepInput, api_key: str = Depends(verify_api_key)
         raise HTTPException(status_code=500, detail="Model not loaded")
     
     # Prepare input for model
-    # Features: ['age', 'sleep_duration_hr', 'heart_rate', 'stress_level', 'rem_percent', 'deep_percent', 'awakenings', 'gender']
     input_df = pd.DataFrame([{
         'age': data.age,
         'gender': data.gender,
@@ -119,29 +179,46 @@ async def analyze_sleep(data: SleepInput, api_key: str = Depends(verify_api_key)
     tier = get_quality_tier(score)
     analysis = generate_detailed_analysis(data, score)
     
-    # Recommendations
-    recs = ["Maintain a consistent sleep schedule", "Reduce blue light exposure 1 hour before bed"]
-    if data.sleep_duration_hr < 7:
-        recs.append("Try going to bed 30 minutes earlier to increase total duration")
+    # Dynamic Recommendations
+    recs = ["Maintain a consistent sleep schedule"]
     
+    if data.sleep_duration_hr < 7:
+        recs.append("Prioritize an earlier bedtime to meet the 7-hour minimum requirement.")
+    
+    if data.deep_percent is not None and data.deep_percent < 15:
+        recs.append("To boost deep sleep, ensure your bedroom is cool (around 18°C) and completely dark.")
+        
+    if data.rem_percent is not None and data.rem_percent < 20:
+        recs.append("Improve REM sleep by avoiding alcohol and heavy meals 3 hours before bed.")
+        
+    if data.heart_rate is not None and data.heart_rate > 75:
+        recs.append("Your sleeping HR is slightly high; try magnesium or a warm bath before sleep.")
+        
+    if data.stress_level is not None and data.stress_level > 5:
+        recs.append("Incorporate 10 minutes of deep breathing or meditation to lower pre-sleep stress.")
+
+    if data.awakenings is not None and data.awakenings > 2:
+        recs.append("Multiple awakenings detected; check for environmental noise or try white noise.")
+
     # Medical Triggers
-    summary = f"Your sleep score is {score:.1f}, categorized as {tier}."
+    summary = f"Your SleepInsight Score is {score:.1f} ({tier})."
     if data.breathing_disturbances_elevated or data.apnea_notification_received:
-        summary += " Note: Abnormal breathing disturbance signals detected; consulting a medical professional is recommended."
-        recs.append("Strongly consider consulting a sleep specialist, especially if you experience excessive daytime sleepiness.")
+        summary += " WARNING: Abnormal breathing patterns or apnea alerts detected."
+        recs.append("URGENT: Based on breathing signals, we strongly recommend a formal clinical sleep study (Polysomnography).")
     
     return SleepAnalysisResponse(
         sleep_score=score,
         quality_tier=tier,
         key_insights={
-            "duration": data.sleep_duration_hr,
-            "deep": data.deep_percent,
-            "rem": data.rem_percent
+            "duration_hr": data.sleep_duration_hr,
+            "deep_pct": data.deep_percent,
+            "rem_pct": data.rem_percent,
+            "hr_bpm": data.heart_rate
         },
         detailed_analysis=analysis,
         summary_opinion=summary,
         recommendations=recs,
-        disclaimer="This analysis is based on Apple Health (Apple Watch) data and is for informational purposes only, not for medical diagnosis."
+        disclaimer="SleepInsight AI is an informational tool. These findings are NOT a medical diagnosis. Consult a doctor for health concerns."
     )
 
 @app.post("/upload_health", response_model=SleepAnalysisResponse)
