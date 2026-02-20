@@ -30,6 +30,21 @@ SleepInsight AI is a machine learning-powered REST API that specifically analyze
    - Production: `prod-key-98765`
    Pass the key in the `X-API-KEY` header.
 
+## How to Demonstrate (Step-by-Step)
+
+To showcase the API's functionality during the presentation, use the built-in **Swagger UI**:
+
+1.  **Open the Interface**: Navigate to `https://sleepinsight-ai-agdeofj7eq-uc.a.run.app/docs`.
+2.  **Authenticate**:
+    *   Click the **Authorize** button (top right).
+    *   Enter `prod-key-98765` in the Value field and click **Authorize**.
+3.  **Upload Demo CSV**:
+    *   Find **POST `/upload_health`**.
+    *   Click **Try it out**.
+    *   Click **Choose File** and select `tests/demo_sleep_data.csv`.
+    *   Click the blue **Execute** button.
+4.  **Analyze Results**: Review the `Responses` body to see the sleep score, insights, and AI recommendations.
+
 ## API Documentation
 
 The API supports direct JSON analysis and raw health data uploads. Interactive documentation is available via Swagger UI at the Live URL's `/docs` endpoint.
