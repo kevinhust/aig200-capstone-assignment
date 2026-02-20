@@ -4,10 +4,12 @@ SleepInsight AI is a machine learning-powered REST API that specifically analyze
 
 ## Project Overview
 
+- **Author**: Zhihuai Wang
 - **Task**: Regression (Sleep Score Prediction 0-100)
 - **Framework**: FastAPI
 - **Model**: RandomForestRegressor (trained on Kaggle Sleep Health & Efficiency datasets)
-- **Deployment**: Dockerized + GCP Cloud Run (Planned)
+- **Deployment**: Live on **GCP Cloud Run**
+- **Live URL**: [https://sleepinsight-ai-agdeofj7eq-uc.a.run.app](https://sleepinsight-ai-agdeofj7eq-uc.a.run.app)
 
 ## Setup & Installation
 
@@ -24,37 +26,16 @@ SleepInsight AI is a machine learning-powered REST API that specifically analyze
    ```
 
 3. **API Key**:
-   Default development key is `dev-key-12345`. Pass it in the `X-API-KEY` header.
+   - Local: `dev-key-12345`
+   - Production: `prod-key-98765`
+   Pass the key in the `X-API-KEY` header.
 
-### Quick Test with Example Data
+## API Documentation
 
-We've provided a sample JSON file to test the output immediately:
+The API supports direct JSON analysis and raw health data uploads. Interactive documentation is available via Swagger UI at the Live URL's `/docs` endpoint.
 
-```bash
-# Test using the provided Python script (Ensure API is running first)
-python3 tests/test_with_json.py
-```
-
-The script reads from `tests/example_payload.json`, which contains a realistic Apple Health sleep profile.
-
-### Docker
-
-1. **Build the image**:
-   ```bash
-   docker build -t sleepinsight-ai .
-   ```
-
-2. **Run the container**:
-   ```bash
-   docker run -p 8000:8000 -e SLEEPINSIGHT_API_KEY=your-secret-key sleepinsight-ai
-   ```
-
-## API Usage
-
-### `POST /analyze_sleep`
-
-**Headers**:
-- `X-API-KEY`: Your API Key
+### 1. `POST /analyze_sleep` (JSON Ingestion)
+Analyze pre-parsed sleep metrics.
 
 **Request Body**:
 ```json
@@ -71,23 +52,28 @@ The script reads from `tests/example_payload.json`, which contains a realistic A
 }
 ```
 
-**Output**:
-- `sleep_score`: Quantitative score.
-- `quality_tier`: Categorical quality.
-- `detailed_analysis`: Breakdown of metrics.
-- `recommendations`: Actionable advice.
-- `disclaimer`: Medical disclaimer.
+### 2. `POST /upload_health` (File Ingestion)
+Directly upload health exports for automatic parsing and analysis.
 
-## Real-World Usage Example (Apple Health)
+**Supported Formats**:
+- **ZIP**: Original `export.zip` from Apple Health.
+- **XML**: Extracted `export.xml`.
+- **CSV**: Lightweight pre-processed data (see format in `tests/demo_sleep_data.csv`).
 
-The system includes a parser for Apple Health XML exports. To test with your data:
-1. Export your Health data from the Health app (Profile -> Export All Health Data).
-2. Use `src/parse_apple_health.py` to get your metrics.
-3. Call the API with the resulting JSON.
+## Real-World Usage Example
 
-### Sample Real-World Result:
-- **Input**: Sleep Duration: 7.93h, Deep Sleep: 12.5%
-- **Analysis**: "Deep sleep percentage is slightly low, which may affect physical recovery."
+1. **Export**: Export your data from the Apple Health app (Profile -> Export All Health Data).
+2. **Upload**: Use the `/upload_health` endpoint to upload your `export.zip`.
+3. **Analysis**: Receive an instant 0-100 score and physical recovery insights.
 
-## Data Sources
-...
+### Demo Data
+For presentation purposes, a sample CSV is provided at: `tests/demo_sleep_data.csv`. This file can be uploaded to the `/upload_health` endpoint to demo various sleep quality scenarios.
+
+## Project Structure
+- `src/main.py`: FastAPI application with endpoint logic.
+- `src/parse_apple_health.py`: XML parsing logic for Apple Watch data.
+- `models/`: Trained model artifact.
+- `archive/`: Project development requirements and process documents.
+
+## Disclaimer
+This analysis is based on wearable device data and general health references. It is for informational purposes only and is not a medical diagnosis. Please consult a qualified health professional.
