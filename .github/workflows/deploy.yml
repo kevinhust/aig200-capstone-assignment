@@ -27,12 +27,6 @@ jobs:
     - name: Set up Cloud SDK
       uses: google-github-actions/setup-gcloud@v2
 
-    - name: Enable Services
-      run: |
-        gcloud services enable artifactregistry.googleapis.com \
-                              run.googleapis.com \
-                              cloudbuild.googleapis.com \
-                              --quiet
 
     - name: Configure Docker
       run: |
